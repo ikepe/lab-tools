@@ -1,0 +1,15 @@
+protocol: TCP # TCP, UDP, ICMP
+source_address: 
+source_port: 
+destination_address: 
+destination_port: 
+interval: 1000000  # micro sec
+duration: 10 # sec
+payload_size: 64   # byte
+
+# -c : パケット数
+# -i : 送信間隔
+# -d : データサイズ
+# -a : 送信元IPアドレス
+# -s : 送信元ポート番号
+# -p : 送信先ポート番号
