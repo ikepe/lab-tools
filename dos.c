@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <unistd.h>
 
 char protocol[] = "TCP"; // TCP, UDP, ICMP
 char source_address[] = "192.168.0.15";
@@ -46,21 +47,33 @@ void send_packet() {
   }
 }
 
-int main(void) {
-  void* send_packets(void* arg) {
-    int startTime = time(NULL);
-    int elapsedTime;
+void *send_packets(void *arg) {
+  int startTime = time(NULL);
+  int elapsedTime;
 
-    while ((elapsedTime = time(NULL) - startTime) < send_time) {
-      send_packet();
-      // すでに経過した時間が send_time 以上なら抜ける
-      if (elapsedTime >= send_time) {
-        break;
-      }
-      usleep(10000); // 10ms待機してから再度チェック
+  while ((elapsedTime = time(NULL) - startTime) < send_time) {
+    send_packet();
+    // すでに経過した時間が send_time 以上なら抜ける
+    if (elapsedTime >= send_time) {
+      break;
     }
+    usleep(10000); // 10ms待機してから再度チェック
+  }
 
-    return NULL;
+  return NULL;
+}
+
+int main(void) {
+  pthread_t thread;
+
+  if (pthread_create(&thread, NULL, send_packets, NULL) != 0) {
+    fprintf(stderr, "Failed to create thread\n");
+    exit(EXIT_FAILURE);
+  }
+
+  if (pthread_join(thread, NULL) != 0) {
+    fprintf(stderr, "Failed to join thread\n");
+    exit(EXIT_FAILURE);
   }
 
   return 0;
