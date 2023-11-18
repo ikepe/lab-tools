@@ -47,34 +47,37 @@ void send_packet() {
   }
 }
 
-void *send_packets(void *arg) {
-  int startTime = time(NULL);
-  int elapsedTime;
+// スレッド用の関数
+void *thread_function(void *arg) {
+  int send_time = *((int *)arg);
 
-  while ((elapsedTime = time(NULL) - startTime) < send_time) {
-    send_packet();
-    // すでに経過した時間が send_time 以上なら抜ける
-    if (elapsedTime >= send_time) {
-      break;
-    }
-    usleep(10000); // 10ms待機してから再度チェック
-  }
+  // send_packet()関数の呼び出し
+  send_packet();
 
-  return NULL;
+  // sleep()を使用して指定秒数待機
+  sleep(send_time);
+
+  // スレッド終了
+  pthread_exit(NULL);
 }
 
 int main(void) {
-  pthread_t thread;
+// スレッドのIDを格納する変数
+  pthread_t thread_id;
 
-  if (pthread_create(&thread, NULL, send_packets, NULL) != 0) {
-    fprintf(stderr, "Failed to create thread\n");
+// スレッドの作成
+  if (pthread_create(&thread_id, NULL, thread_function, (void *)&send_time) != 0) {
+    fprintf(stderr, "Error creating thread.\n");
     exit(EXIT_FAILURE);
   }
 
-  if (pthread_join(thread, NULL) != 0) {
-    fprintf(stderr, "Failed to join thread\n");
+  // メインスレッドはスレッドの終了を待つ
+  if (pthread_join(thread_id, NULL) != 0) {
+    fprintf(stderr, "Error joining thread.\n");
     exit(EXIT_FAILURE);
   }
+
+  printf("Program finished.\n");
 
   return 0;
 }
